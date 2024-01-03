@@ -68,13 +68,13 @@ let%test_unit "pozeni busy_beaver" = [%test_eq: (Base.int*Base.int) Base.list ]
 
 (* Testi za parsinarje *)
 
-let%test_unit "v_tokene" = [%test_eq: Base.string Base.list]
-  (Parser.v_tokene "A _ ->  B [1 - desno]")
+let%test_unit "v_strtokene" = [%test_eq: Base.string Base.list]
+  (Parser.v_strtokene "A _ ->  B [1 - desno]")
   (["A";"_";"->";"B";"[1-desno]"])
 ;;
 
-let%test_unit "v_tokene" = [%test_eq: Base.string Base.list]
-  (Parser.v_tokene "A [_, B,C, D] ->  B [1 - desno]")
+let%test_unit "v_strtokene" = [%test_eq: Base.string Base.list]
+  (Parser.v_strtokene "A [_, B,C, D] ->  B [1 - desno]")
   (["A";"[_,B,C,D]";"->"; "B";"[1-desno]"])
 ;;
 
@@ -86,4 +86,40 @@ let%test_unit "v_seznam" = [%test_eq: Base.string Base.list]
 let%test_unit "v_seznam" = [%test_eq: Base.string Base.list]
   (Parser.v_seznam "D")
   (["D"])
+;;
+
+let preberi_testfile filename = 
+  let in_channel = In_channel.open_text ("example_files/"^filename) in
+  let rec aux acc = 
+    match In_channel.input_line in_channel with
+    | None -> List.rev acc
+    | Some line -> aux (line::acc) in
+  aux []
+;;
+
+let%test "parsiraj" = 
+  (Parser.parsiraj @@ preberi_testfile "primer1") = 
+  ([
+    Parser.Zacetek ("A", 1);
+    Parser.Podatki (["_";"1"]);
+    Parser.Tranzicija ( ("A", ["_"]),( "B", ["1",Parser.Desno]) );
+    Parser.Tranzicija ( ("A", ["1"]),("!H", ["1",Parser.Desno]) );
+
+    Parser.Tranzicija ( ("B", ["_"]),("C", ["_",Parser.Desno]) );
+    Parser.Tranzicija ( ("B", ["1"]),("B", ["1",Parser.Desno]) );
+
+    Parser.Tranzicija ( ("C", ["_"]),("C", ["1",Parser.Levo]) );
+    Parser.Tranzicija ( ("C", ["1"]),("A", ["1",Parser.Levo]) );
+  ])
+;;
+
+let%test "parsiraj" = 
+  (Parser.parsiraj @@ preberi_testfile "primer2") = 
+  ([
+    Parser.Tranzicija ( ("test", ["a";"b";"c"]),( "s1", ["a",Parser.Levo;"b",Parser.Desno;"c",Parser.Ni]) );
+    Parser.Tranzicija ( ("test", ["a";"b";"c"]),( "s2", ["a",Parser.Levo;"b",Parser.Desno;"c",Parser.Ni]) );
+
+    Parser.Tranzicija ( ("test2", ["e";"f";"g"]),( "s1", ["a",Parser.Levo;"b",Parser.Desno;"c",Parser.Ni]) );
+    Parser.Tranzicija ( ("test2", ["e";"f";"g"]),( "s2", ["a",Parser.Levo;"b",Parser.Desno;"c",Parser.Ni]) );
+  ])
 ;;

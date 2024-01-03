@@ -1,6 +1,11 @@
 (library
  (name otm)
- (inline_tests)
+ (inline_tests 
+  (deps 
+   example_files/primer1
+   example_files/primer2
+  )
+ )
  (libraries str)
  (preprocess (pps ppx_inline_test ppx_assert))
 )

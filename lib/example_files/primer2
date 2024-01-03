@@ -1,0 +1,9 @@
+# primer le za parser (ni veljaven program)
+
+test [a,b,c] -> 
+| s1 [a-l, b-d, c-n]
+| s2 [a-l, b-d, c-n]
+
+test2 [e,f,g] -> 
+| s1 [a-l, b-d, c-n]
+| s2 [a-l, b-d, c-n]
