@@ -65,3 +65,25 @@ let%test_unit "pozeni busy_beaver" = [%test_eq: (Base.int*Base.int) Base.list ]
   )
   ([ -1,1; 0,1; 1,1; 2,1; 3,1; 4,1 ])
 ;;
+
+(* Testi za parsinarje *)
+
+let%test_unit "v_tokene" = [%test_eq: Base.string Base.list]
+  (Parser.v_tokene "A _ ->  B [1 - desno]")
+  (["A";"_";"->";"B";"[1-desno]"])
+;;
+
+let%test_unit "v_tokene" = [%test_eq: Base.string Base.list]
+  (Parser.v_tokene "A [_, B,C, D] ->  B [1 - desno]")
+  (["A";"[_,B,C,D]";"->"; "B";"[1-desno]"])
+;;
+
+let%test_unit "v_seznam" = [%test_eq: Base.string Base.list]
+  (Parser.v_seznam "[_,B,C,D]")
+  (["_";"B";"C";"D"])
+;;
+
+let%test_unit "v_seznam" = [%test_eq: Base.string Base.list]
+  (Parser.v_seznam "D")
+  (["D"])
+;;

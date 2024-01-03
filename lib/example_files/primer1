@@ -1,0 +1,26 @@
+# komentarji so vrstice ki se začnejo z znakom #
+# začetno stanje in število tirov definiramo z vrstico ki se začne z znakom @
+# končna stanje označimo tako, da dodamo ! pred njega
+# možne podatke definiramo vrstici, ki se začne z znakom $ in vsebuje seznam, praznen podatek je _
+
+# deterministično navodilo je oblike 
+# stanje [podatki] -> stanje' [navodila]
+# nedeterministično navoilo pa oblike
+# stanje [podatki] -> 
+# | stanje1' [navodila1']
+# | stanje2' [navoidla2']
+
+# determinstičnega stroja z enim tirom 
+# (busy beaver 3 stanja 2 simbola iz https://en.wikipedia.org/wiki/Busy_beaver)   
+
+@ A 1
+$ [_,1]
+
+A _ ->  B [1 - desno]
+A 1 -> !H [1 - desno]
+
+B _ ->  C [_ - desno]
+B 1 ->  B [1 - desno]
+
+C _ ->  C [1 - levo]
+C 1 ->  A [1 - levo]
