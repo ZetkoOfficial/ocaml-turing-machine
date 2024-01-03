@@ -1,4 +1,5 @@
 open Turing
+open Tipi
 
 let tiri = List.mapi (fun glava l -> { glava; trak = l |> List.to_seq |> Trak.of_seq })[
   [(0,Podatek 0);(1,Podatek 1);(2,Podatek 2);];
@@ -18,21 +19,21 @@ let tir_to_list tir = tir.trak |> Trak.bindings |> List.map (fun (i,v) -> (i,pod
 (* Testi za branje in pisanje na tire. *)
 
 let%test_unit "preberi_tire" = [%test_eq: Base.int Base.list] 
-  ( tiri |> preberi_tire |> List.map (pod_to_int) ) 
+  ( tiri |> NDVT.Helper.preberi_tire |> List.map (pod_to_int) ) 
   ([0;2;4])
 ;;
 
 let%test_unit "posodobi_tire" = [%test_eq: Base.int Base.list] 
   ( 
-    (posodobi_tire tiri [Podatek 3,Desno; Podatek 3,Levo; Podatek 10, N]) 
-    |> preberi_tire |> List.map (pod_to_int) 
+    (NDVT.Helper.posodobi_tire tiri [Podatek 3,Desno; Podatek 3,Levo; Podatek 10, N]) 
+    |> NDVT.Helper.preberi_tire |> List.map (pod_to_int) 
   ) 
   ([1;1;10])
 ;;
 
 let%test_unit "nastavi_input" = [%test_eq: ((Base.int*Base.int) Base.list) Base.list] 
   (
-    let tiri' = nastavi_input 0 [Podatek 6; Podatek 6; Podatek 6; Podatek 6; ] tiri in
+    let tiri' = NDVT.Helper.nastavi_input 0 [Podatek 6; Podatek 6; Podatek 6; Podatek 6; ] tiri in
     List.map (fun t -> tir_to_list t) tiri'
   )
   ([[0,6;1,6;2,6;3,6];[0,1;1,2;2,3];[0,2;1,3;2,4]])
@@ -54,11 +55,11 @@ let tranzicije = [
   (Stanje "C", [Podatek 1]),  (Stanje "A", [Podatek 1,Levo]);
 ]
 
-let turing = ustvari_turing 1 (Stanje "A") [Stanje "H"] tranzicije;;
+let turing = NDVT.ustvari 1 (Stanje "A") [Stanje "H"] tranzicije;;
 
 let%test_unit "pozeni busy_beaver" = [%test_eq: (Base.int*Base.int) Base.list ] 
   (
-    match pozeni turing [] with
+    match NDVT.pozeni turing [] with
     | Konec turing -> tir_to_list @@ List.hd turing.data.tiri
     | _ -> failwith "neuspešno"
   )
