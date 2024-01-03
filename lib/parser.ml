@@ -1,8 +1,6 @@
 (* Knjižnica funkcij za parsiranje datotek pred compilanjem. *)
 
 exception InvalidBrackets
-exception MissingDefinitions
-exception MultipleDefinitions
 exception InvalidDirection
 exception InvalidTransition
 exception ParseException
@@ -60,18 +58,6 @@ let v_strtokene vrstica =
 let v_seznam seznam_strtoken = 
   let seznam_token = Str.global_replace (Str.regexp "\\[\\|\\]") "" seznam_strtoken in
   Str.split (Str.regexp ", *") seznam_token
-;;
-
-(** 
-    Najde vrstico, ki se začne z strtokenom [sym].
-    @raise MissingDefinitions če je te vrstice ni 
-    @raise MultipleDefinitions če je takih vrstic več
-*)
-let najdi_sym sym vrstice = 
-  match List.filter (fun vrstica -> List.hd vrstica = sym) vrstice with
-  | [vrstica] -> vrstica
-  | [] -> raise MissingDefinitions
-  | _ ->  raise MultipleDefinitions
 ;;
 
 (** Parsira strtoken seznama navodil  *)

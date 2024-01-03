@@ -1,5 +1,5 @@
 (library
- (name otm)
+ (name otm_lib)
  (inline_tests 
   (deps 
    example_files/primer1

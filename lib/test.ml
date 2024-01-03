@@ -8,25 +8,26 @@ let tiri = List.mapi (fun glava l -> { glava; trak = l |> List.to_seq |> Trak.of
 ];;
 
 (** unsafe  *)
-let pod_to_int podatek = 
+let pod_to_val def podatek = 
   match podatek with
   | Podatek p -> p
-  | Prazno -> 0 
+  | Prazno -> def
 ;;
 (** unsafe *)
-let tir_to_list tir = tir.trak |> Trak.bindings |> List.map (fun (i,v) -> (i,pod_to_int v));;
+let tir_to_list tir = tir.trak |> Trak.bindings |> List.map (fun (i,v) ->   (i,pod_to_val 0 v));;
+let tir_to_list_s tir = tir.trak |> Trak.bindings |> List.map (fun (i,v) -> (i,pod_to_val "0" v));;
 
 (* Testi za branje in pisanje na tire. *)
 
 let%test_unit "preberi_tire" = [%test_eq: Base.int Base.list] 
-  ( tiri |> NDVT.Helper.preberi_tire |> List.map (pod_to_int) ) 
+  ( tiri |> NDVT.Helper.preberi_tire |> List.map (pod_to_val 0) ) 
   ([0;2;4])
 ;;
 
 let%test_unit "posodobi_tire" = [%test_eq: Base.int Base.list] 
   ( 
     (NDVT.Helper.posodobi_tire tiri [Podatek 3,Desno; Podatek 3,Levo; Podatek 10, N]) 
-    |> NDVT.Helper.preberi_tire |> List.map (pod_to_int) 
+    |> NDVT.Helper.preberi_tire |> List.map (pod_to_val 0) 
   ) 
   ([1;1;10])
 ;;
@@ -122,4 +123,29 @@ let%test "parsiraj" =
     Parser.Tranzicija ( ("test2", ["e";"f";"g"]),( "s1", ["a",Parser.Levo;"b",Parser.Desno;"c",Parser.Ni]) );
     Parser.Tranzicija ( ("test2", ["e";"f";"g"]),( "s2", ["a",Parser.Levo;"b",Parser.Desno;"c",Parser.Ni]) );
   ])
+;;
+
+(* Testi za prevajanje v turingov stroj *)
+
+let parsirano = [
+  Parser.Zacetek ("A", 1);
+  Parser.Podatki (["_";"1"]);
+  Parser.Tranzicija ( ("A", ["_"]),( "B", ["1",Parser.Desno]) );
+  Parser.Tranzicija ( ("A", ["1"]),("!H", ["1",Parser.Desno]) );
+
+  Parser.Tranzicija ( ("B", ["_"]),("C", ["_",Parser.Desno]) );
+  Parser.Tranzicija ( ("B", ["1"]),("B", ["1",Parser.Desno]) );
+
+  Parser.Tranzicija ( ("C", ["_"]),("C", ["1",Parser.Levo]) );
+  Parser.Tranzicija ( ("C", ["1"]),("A", ["1",Parser.Levo]) );
+]
+
+let%test_unit "pozeni in prevedi parsiran busy_beaver" = [%test_eq: (Base.int*Base.string) Base.list ] 
+  (
+    let turing = Compiler.prevedi_tokene parsirano in 
+    match NDVT.pozeni turing [] with
+    | Konec turing -> tir_to_list_s @@ List.hd turing.data.tiri
+    | _ -> failwith "neuspešno"
+  )
+  ([ -1,"1"; 0,"1"; 1,"1"; 2,"1"; 3,"1"; 4,"1" ])
 ;;
