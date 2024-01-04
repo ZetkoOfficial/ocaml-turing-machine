@@ -11,7 +11,12 @@ let preberi_file filename =
   aux []
 ;;
 
-let print_error del error_text = 
+let print_error ?(line_num=None) del error_text = 
+  
+  let del = match line_num with
+    | None    -> del
+    | Some i  -> del^" [vrstica "^ (string_of_int (i+1))^"]" in
+
   prerr_endline ("[!] Napaka: " ^ del);
   prerr_string "|-> ";
   prerr_endline error_text; print_newline ()
@@ -35,34 +40,37 @@ let prevedi filename =
   (* ga parsiramo *)
   let parsirano = 
     try Parser.parsiraj vrstice with 
-      | Parser.InvalidBrackets -> begin 
-        print_error "parsiranje" "Nepravilni oklepaji.";
+      | Parser.InvalidPosNumber i -> begin 
+        print_error ~line_num:(Some i) "parsiranje" "Pričakovano pozitivno število.";
         raise CompilationError end
-      | Parser.InvalidDirection -> begin 
-        print_error "parsiranje" "V tranzcijah se pojavi neveljavna smer.";
+      | Parser.InvalidBrackets i -> begin 
+        print_error ~line_num:(Some i) "parsiranje" "Nepravilni oklepaji.";
         raise CompilationError end
-      | Parser.InvalidTransition -> begin 
-        print_error "parsiranje" "Sintaktična napaka pri definiciji tranzicije.";
+      | Parser.InvalidDirection i-> begin 
+        print_error ~line_num:(Some i) "parsiranje" "V tranzcijah se pojavi neveljavna smer.";
         raise CompilationError end
-      | Parser.ParseException -> begin 
-        print_error "parsiranje" "Splošna sintaktična napaka.";
+      | Parser.InvalidTransition i-> begin 
+        print_error ~line_num:(Some i) "parsiranje" "Sintaktična napaka pri definiciji tranzicije.";
+        raise CompilationError end
+      | Parser.ParseException i -> begin 
+        print_error ~line_num:(Some i) "parsiranje" "Splošna sintaktična napaka.";
         raise CompilationError end in
   
   (* in nazadnje prevedemo *)
   let turing =
     try Compiler.prevedi_tokene parsirano with
-      | Compiler.MissingDefinitions -> begin 
-        print_error "prevajanje" "Manjkajoče ključno navodilo.";
+      | Compiler.MissingDefinitions str -> begin 
+        print_error "prevajanje" ("Manjkajoče ključno navodilo: \""^str^"\".");
         raise CompilationError end
-      | Compiler.MultipleDefinitions -> begin 
-        print_error "prevajanje" "Podvojeno ključno navodilo.";
+      | Compiler.MultipleDefinitions str -> begin 
+        print_error "prevajanje" ("Podvojeno ključno navodilo: \""^str^"\".");
         raise CompilationError end
       | Compiler.MissingTranstion (a,b) -> begin 
         let str = "(" ^ (string_of_int a) ^ "/" ^ (string_of_int b) ^ ")" in
         print_error "prevajanje" ("Manjkajoče tranzicije, prisotnih le " ^ str);
         raise CompilationError end
-      | Compiler.UnknownSymbol -> begin 
-        print_error "prevajanje" "V tranzicijah se pojavi simbol ki ni definiran.";
+      | Compiler.UnknownSymbol sym -> begin 
+        print_error "prevajanje" ("V tranzicijah se pojavi simbol: \""^sym^"\", ki ni definiran.");
         raise CompilationError end in turing
 ;;
 
@@ -70,5 +78,7 @@ if Array.length Sys.argv <> 2 then
   print_error "uporaba" "Neveljavni/manjkajoči argumenti\n\nUporaba: [pot_do_datoteke]"
 else
   let filename = Sys.argv.(1) in
-  let _ = prevedi filename in
-  print_info "parsiranje" "Uspešno parsirano."
+  try
+    let _ = prevedi filename in
+    print_info "parsiranje" "Uspešno parsirano."
+  with _ -> ()

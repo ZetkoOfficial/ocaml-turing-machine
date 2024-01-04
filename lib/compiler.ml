@@ -1,18 +1,22 @@
 open Turing
 open Tipi
 
-exception MissingDefinitions
-exception MultipleDefinitions
+(* V napakah je še ime problematične definicije *)
+exception MissingDefinitions  of string
+exception MultipleDefinitions of string 
+
 exception MissingTranstion of int * int
-exception UnknownSymbol
+
+(* Napaka vsebuje neznan simbol *)
+exception UnknownSymbol of string
 
 (** Vrne napako v primeru da je tokenov ki zadoščajo [f] več ali manj od [1]. 
     Drugače najde token ki zadišča predikatu [f]. *)
-let find_sym f tokeni = 
+let find_sym ?(label="") f tokeni = 
   match List.filter f tokeni with
   | [t] -> t
-  | []  -> raise MissingDefinitions
-  | _   -> raise MultipleDefinitions
+  | []  -> raise (MissingDefinitions label)
+  | _   -> raise (MultipleDefinitions label)
 ;;
 
 let is_zacetek t = match t with Parser.Zacetek _ -> true | _ -> false
@@ -61,12 +65,12 @@ let prevedi_tokene tokeni =
 
   (* Prodobimo nujna tokena *)
   let (zacetno_stanje, st_tirov) = 
-    match find_sym (is_zacetek) tokeni with
+    match find_sym ~label:"@ (začetno_stanje) (število_tirov)" (is_zacetek) tokeni with
     | Parser.Zacetek (u,v) -> u,v
     | _ -> failwith "nepričakovana napaka" in
 
   let veljavni_podatki = 
-    match find_sym (is_podatki) tokeni with
+    match find_sym ~label:"$ [veljavni_podatki]" (is_podatki) tokeni with
     | Parser.Podatki list -> list
     | _ -> failwith "nepričakovana napaka" in
 
@@ -79,8 +83,15 @@ let prevedi_tokene tokeni =
   let vsa_stanja, vsi_podatki = pridobi_stanja tranzicije, pridobi_podatke tranzicije in
 
   (* preverimo če so vsi_podatki podmnožica veljavnih *)
-  if  List.sort_uniq (compare) (veljavni_podatki @ vsi_podatki) <>
-      List.sort_uniq (compare) veljavni_podatki then raise UnknownSymbol;
+  let manjkajoc_simbol = 
+    List.fold_left (fun acc simbol -> 
+      if List.mem simbol veljavni_podatki then acc else Some simbol
+    ) None vsi_podatki in 
+    begin 
+      match manjkajoc_simbol with
+      | None -> ()
+      | Some sym -> raise (UnknownSymbol sym) 
+    end;
 
   (* preverimo če se vse kombinacije stanj in podatkov pojavijo v tranzicijah *)
   let comb_pricakovno = 
