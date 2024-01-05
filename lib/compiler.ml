@@ -10,6 +10,8 @@ exception MissingTranstion of int * int
 (* Napaka vsebuje neznan simbol *)
 exception UnknownSymbol of string
 
+exception ExpectedDeterministic
+
 (** Vrne napako v primeru da je tokenov ki zadoščajo [f] več ali manj od [1]. 
     Drugače najde token ki zadišča predikatu [f]. *)
 let find_sym ?(label="") f tokeni = 
@@ -53,13 +55,16 @@ let preveri_navodilo (p,smer) =
 
 (** 
   Funkcija prevede seznam tokenov v turingovo napravo.
+
+  Opcija [~force] ignorira nekritične napake(kot so manjajoče tranzicije in definicije simbolov).
+  Opcija [~deterministic_only] preveri da je turingova naprava deterministična. 
   
   @raise MissingDefinitions če manjka kaka definicija
   @raise MultipleDefinitions če je kake definicije preveč
   @raise MissingTranstion(najdeno,pričakovano) če niso podane vse tranzicije
   @raise UnknownSymbol če se pojavi nedefiniran simbol v podatkih
 *)
-let prevedi_tokene tokeni = 
+let prevedi_tokene ?(force=false) ?(deterministic_only=false) tokeni = 
   (* odstranimo morebitne popolne duplikate *)
   let tokeni = List.sort_uniq (compare) tokeni in
 
@@ -90,7 +95,7 @@ let prevedi_tokene tokeni =
     begin 
       match manjkajoc_simbol with
       | None -> ()
-      | Some sym -> raise (UnknownSymbol sym) 
+      | Some sym -> if not force then raise (UnknownSymbol sym) 
     end;
 
   (* preverimo če se vse kombinacije stanj in podatkov pojavijo v tranzicijah *)
@@ -102,7 +107,15 @@ let prevedi_tokene tokeni =
     List.map (fun (t_in,_) -> t_in) |>
     List.sort_uniq (compare) |> List.length in
 
-  if comb_najdeno <> comb_pricakovno then raise (MissingTranstion (comb_najdeno, comb_pricakovno));
+  if comb_najdeno <> comb_pricakovno && not force
+    then raise (MissingTranstion (comb_najdeno, comb_pricakovno));
+
+  (* preverimo če naprava ni deterministična *)
+  if not @@ List.fold_left (fun acc (t_in,_) -> 
+    if not acc then acc
+    else List.length @@ (List.find_all (fun (t_in', _) -> t_in = t_in') tranzicije) = 1
+  ) true tranzicije then
+    if deterministic_only then raise ExpectedDeterministic;
   
   (* nazadnje ustvarimo turingovo napravo *)
 
