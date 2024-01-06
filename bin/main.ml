@@ -12,22 +12,12 @@ let preberi_file filename =
   aux []
 ;;
 
-let print_error ?(line_num=None) del error_text = 
-  
-  let del = match line_num with
-    | None    -> del
-    | Some i  -> del^" [vrstica "^ (string_of_int (i+1))^"]" in
-
-  prerr_endline ("[!] Napaka: " ^ del);
-  prerr_string "|-> ";
-  prerr_endline error_text; print_newline ()
-;;
-
-let print_info ?(newline=true) del info_text = 
-  print_endline ("[@] Obvestilo: " ^ del);
-  print_string "|-> ";
-  print_string info_text; 
-  if newline then begin print_newline (); print_newline () end
+let get_input () = 
+  Logging.print_q "pogon programa" "vnesite input ločen s presledki:";
+  let input = read_line () in
+  Logging.ANSI.delete_line ();
+  Logging.ANSI.delete_line ();
+  input
 ;;
 
 (** Funkcija prevede datoteko na lokaciji [filename]  *)
@@ -36,70 +26,70 @@ let prevedi ~force ~deterministic_only filename =
   let vrstice = 
     try preberi_file filename with
       _ -> begin 
-      print_error "branje" "Napaka pri branju datoteke.";
+      Logging.print_error "branje" ["datoteke ni bilo mogoče prebrati."];
       raise CompilationError end in
   
   (* ga parsiramo *)
   let parsirano = 
     try Parser.parsiraj vrstice with 
       | Parser.InvalidPosNumber i -> begin 
-        print_error ~line_num:(Some i) "parsiranje" "Pričakovano pozitivno število.";
+        Logging.print_error ~line_num:(Some i) "parsiranje" ["pričakovano pozitivno število."];
         raise CompilationError end
       | Parser.InvalidBrackets i -> begin 
-        print_error ~line_num:(Some i) "parsiranje" "Nepravilni oklepaji.";
+        Logging.print_error ~line_num:(Some i) "parsiranje" ["nepravilni oklepaji."];
         raise CompilationError end
       | Parser.InvalidDirection i-> begin 
-        print_error ~line_num:(Some i) "parsiranje" "V tranzcijah se pojavi neveljavna smer.";
+        Logging.print_error ~line_num:(Some i) "parsiranje" ["v tranzcijah se pojavi neveljavna smer."];
         raise CompilationError end
       | Parser.InvalidTransition i-> begin 
-        print_error ~line_num:(Some i) "parsiranje" "Sintaktična napaka pri definiciji tranzicije.";
+        Logging.print_error ~line_num:(Some i) "parsiranje" ["sintaktična napaka pri definiciji tranzicije."];
         raise CompilationError end
       | Parser.ParseException i -> begin 
-        print_error ~line_num:(Some i) "parsiranje" "Splošna sintaktična napaka.";
+        Logging.print_error ~line_num:(Some i) "parsiranje" ["splošna sintaktična napaka."];
         raise CompilationError end in
-  print_info "parsiranje" "Uspešno.";
+  Logging.print_uspeh "parsiranje";
+
   (* in nazadnje prevedemo *)
   let turing =
     try Compiler.prevedi_tokene ~force ~deterministic_only parsirano with
       | Compiler.MissingDefinitions str -> begin 
-        print_error "prevajanje" ("Manjkajoče ključno navodilo: \""^str^"\".");
+        Logging.print_error "prevajanje" ["manjkajoče ključno navodilo: \""^str^"\"."];
         raise CompilationError end
       | Compiler.MultipleDefinitions str -> begin 
-        print_error "prevajanje" ("Podvojeno ključno navodilo: \""^str^"\".");
+        Logging.print_error "prevajanje" ["podvojeno ključno navodilo: \""^str^"\"."];
         raise CompilationError end
       | Compiler.MissingTranstion (a,b) -> begin 
         let str = "(" ^ (string_of_int a) ^ "/" ^ (string_of_int b) ^ ")" in
-        print_error "prevajanje" ("Manjkajoče tranzicije, prisotnih le " ^ str);
+        Logging.print_error "prevajanje" ["manjkajoče tranzicije, prisotnih le " ^ str];
         raise CompilationError end
       | Compiler.UnknownSymbol sym -> begin 
-        print_error "prevajanje" ("V tranzicijah se pojavi simbol: \""^sym^"\", ki ni definiran.");
+        Logging.print_error "prevajanje" ["v tranzicijah se pojavi simbol: \""^sym^"\", ki ni definiran."];
         raise CompilationError end 
       | Compiler.ExpectedDeterministic -> begin 
-        print_error "prevajanje" "Pričakovan je bil determinističen turingov stroj, a to ni.";
+        Logging.print_error "prevajanje" ["pričakovan je bil determinističen turingov stroj, a to ni."];
         raise CompilationError end 
       | _ -> begin
-        print_error "prevajanje" "Neznana napaka.";
+        Logging.print_error "prevajanje" ["neznana napaka."];
         raise CompilationError end in
-
-  print_info "prevajanje" "Uspešno.";
+  Logging.print_uspeh "prevajanje";
   turing
 ;;
 
 let pozeni turing = 
-  print_info ~newline:false "runtime" "Vnesite input ločen s presledki: ";
-  let input = Str.split (Str.regexp " +") (read_line ()) in
+  let input = Str.split (Str.regexp " +") (get_input ()) in
   let input = List.map (fun p -> if p = "_" then Prazno else Podatek p) input in
-  print_newline (); print_info "runtime" "Program se je pognal.";
+  Logging.print_wait "pogon programa"; print_string "\r"; flush stdout;
+  (* print_newline (); print_info "runtime" "Program se je pognal."; *)
 
   let turing = try Turing.NDVT.pozeni turing input with
     | RuntimeException -> begin
-      print_error "runtime" "Program je dosegel neznano stanje.";
+      Logging.print_error "pogon programa" ["program je dosegel neznano stanje/simbol."];
       raise RuntimeException end
     | _ -> begin
-      print_error "runtime" "Neznana napaka.";
+      Logging.print_error "pogon programa" ["neznana napaka."];
       raise RuntimeException end in
 
-  print_info "runtime" "Uspešno.";
+  Logging.print_uspeh "pogon programa";
   turing
 ;;  
 
