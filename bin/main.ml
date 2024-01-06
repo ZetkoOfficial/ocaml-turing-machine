@@ -1,4 +1,5 @@
 open Otm_lib
+open Turing.Tipi
 
 exception CompilationError
 
@@ -22,10 +23,11 @@ let print_error ?(line_num=None) del error_text =
   prerr_endline error_text; print_newline ()
 ;;
 
-let print_info del info_text = 
+let print_info ?(newline=true) del info_text = 
   print_endline ("[@] Obvestilo: " ^ del);
   print_string "|-> ";
-  print_endline info_text; print_newline ()
+  print_string info_text; 
+  if newline then begin print_newline (); print_newline () end
 ;;
 
 (** Funkcija prevede datoteko na lokaciji [filename]  *)
@@ -83,6 +85,24 @@ let prevedi ~force ~deterministic_only filename =
   turing
 ;;
 
+let pozeni turing = 
+  print_info ~newline:false "runtime" "Vnesite input ločen s presledki: ";
+  let input = Str.split (Str.regexp " +") (read_line ()) in
+  let input = List.map (fun p -> if p = "_" then Prazno else Podatek p) input in
+  print_newline (); print_info "runtime" "Program se je pognal.";
+
+  let turing = try Turing.NDVT.pozeni turing input with
+    | RuntimeException -> begin
+      print_error "runtime" "Program je dosegel neznano stanje.";
+      raise RuntimeException end
+    | _ -> begin
+      print_error "runtime" "Neznana napaka.";
+      raise RuntimeException end in
+
+  print_info "runtime" "Uspešno.";
+  turing
+;;  
+
 let uporaba_str = "Uporaba:\notm <filename> [--(f)orce] [--(d)eterministic_only] [--(c)ompile_only]\n" in
 let force =               ref false in
 let deterministic_only =  ref false in
@@ -111,7 +131,8 @@ let force, deterministic_only, compile_only, extra =
 match extra with
 | [filename] -> begin
   try
-    let _turing = prevedi ~force ~deterministic_only filename in
-    if compile_only then exit 0
-  with _ -> () end
+    let turing = prevedi ~force ~deterministic_only filename in
+    if compile_only then exit 0;
+    let _ = pozeni turing in ()
+  with _ -> exit 1 end
 | _ -> let _ = Arg.usage specifikacija uporaba_str in exit 1

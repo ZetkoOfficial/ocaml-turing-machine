@@ -1,0 +1,14 @@
+# primer nedeterministične naprave
+
+@ A 1
+$ _
+
+A _ ->
+| B         [_-n]
+| C         [_-n]
+
+C _ -> A    [_-n]
+
+B _ ->
+|  C        [_-n]
+| !D        [_-n] 

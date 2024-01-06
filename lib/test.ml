@@ -60,9 +60,8 @@ let turing = NDVT.ustvari 1 (Stanje "A") [Stanje "H"] tranzicije;;
 
 let%test_unit "pozeni busy_beaver" = [%test_eq: (Base.int*Base.int) Base.list ] 
   (
-    match NDVT.pozeni turing [] with
-    | Konec turing -> tir_to_list @@ List.hd turing.data.tiri
-    | _ -> failwith "neuspešno"
+    let turing = NDVT.pozeni turing [] in
+    tir_to_list @@ List.hd turing.data.tiri
   )
   ([ -1,1; 0,1; 1,1; 2,1; 3,1; 4,1 ])
 ;;
@@ -143,9 +142,27 @@ let parsirano = [
 let%test_unit "pozeni in prevedi parsiran busy_beaver" = [%test_eq: (Base.int*Base.string) Base.list ] 
   (
     let turing = Compiler.prevedi_tokene parsirano in 
-    match NDVT.pozeni turing [] with
-    | Konec turing -> tir_to_list_s @@ List.hd turing.data.tiri
-    | _ -> failwith "neuspešno"
+    let turing = NDVT.pozeni turing [] in
+    tir_to_list_s @@ List.hd turing.data.tiri
   )
   ([ -1,"1"; 0,"1"; 1,"1"; 2,"1"; 3,"1"; 4,"1" ])
+;;
+
+let parsirano = [
+  Parser.Zacetek ("A", 1);
+  Parser.Podatki (["_"]);
+  Parser.Tranzicija ( ("A", ["_"]),( "B", ["_",Parser.Ni]) );
+  Parser.Tranzicija ( ("A", ["_"]),( "C", ["_",Parser.Ni]) );
+
+  Parser.Tranzicija ( ("C", ["_"]),( "A", ["_",Parser.Ni]) );
+
+  Parser.Tranzicija ( ("B", ["_"]),( "C",  ["_",Parser.Ni]) );
+  Parser.Tranzicija ( ("B", ["_"]),( "!D", ["_",Parser.Ni]) );
+]
+
+let%test "pozeni in prevedi parsiran nedeterministični stroj" =
+  (
+    let turing = Compiler.prevedi_tokene parsirano in 
+    let _turing = NDVT.pozeni turing [] in true
+  )
 ;;

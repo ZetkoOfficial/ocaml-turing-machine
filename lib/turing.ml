@@ -1,5 +1,5 @@
 (** 
-  Splošne definicije tipov potrebnih za ustvarjanje in pogon instanc 
+  Splošne definicije tipov in napak potrebnih za ustvarjanje in pogon instanc 
   večtirnih turingovih strojev.
 *)
 module Tipi = struct
@@ -41,6 +41,8 @@ module Tipi = struct
     sprejemna_stanja:   ('s stanje) list;
     tranzicije:         ('s, 'p) turing_tranzicija list
   }
+
+  exception RuntimeException 
 end
 
 (** Implementacija nedeterministične večtirne turingove naprave. *)
@@ -121,18 +123,27 @@ module NDVT = struct
         ) tranzicije
   ;;
 
-  (** Požene nedeterministični večtirni turingov stroj s podanim [input]-om. *)
+  (** Požene nedeterministični večtirni turingov stroj s podanim [input]-om. 
+      Implementirano kot BFS z Queue. *)
   let pozeni turing input = 
-    let rec aux turing = 
-      match korak turing with
-      | [Konec   turing'] -> Konec turing'
-      | [Naprej  turing'] -> aux turing'
-      | [error] -> error
-      | _ -> print_endline "Stroj ni determinističen!"; Napaka turing in
+    let q = Queue.create () in
+
+    let rec aux () = 
+      if Queue.is_empty q then raise RuntimeException
+      else 
+        match Queue.take q with
+        | Napaka _      -> raise RuntimeException
+        | Konec  turing -> turing
+        | Naprej turing ->
+          List.iter (fun t -> Queue.add t q) (korak turing);
+          aux () in
 
     let data = { turing.data with
       tiri = Helper.nastavi_input 0 input turing.data.tiri
-    } in aux {turing with data}
+    } in 
+
+    Queue.add (Naprej {turing with data}) q; 
+    aux ()
   ;;
 
 end
