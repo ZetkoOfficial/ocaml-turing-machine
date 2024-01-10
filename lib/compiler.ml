@@ -12,6 +12,15 @@ exception UnknownSymbol of string
 
 exception ExpectedDeterministic
 
+(** Izračuna a^b. *)
+let rec pow a b = 
+  match b with
+  | 0 -> 1 | 1 -> a
+  | b -> 
+    let b' = pow a (b/2) in
+    if b mod 2 = 0 then b' * b' else b'*b'*a
+;;
+
 (** Vrne napako v primeru da je tokenov ki zadoščajo [f] več ali manj od [1]. 
     Drugače najde token ki zadišča predikatu [f]. *)
 let find_sym ?(label="") f tokeni = 
@@ -101,7 +110,7 @@ let prevedi_tokene ?(force=false) ?(deterministic_only=false) tokeni =
   (* preverimo če se vse kombinacije stanj in podatkov pojavijo v tranzicijah *)
   let comb_pricakovno = 
     (List.length @@ List.filter (fun s -> not @@ String.starts_with ~prefix:"!" s) vsa_stanja) * 
-    (List.length vsi_podatki) in
+    (pow (List.length vsi_podatki) st_tirov) in
   
   let comb_najdeno = tranzicije |> 
     List.map (fun (t_in,_) -> t_in) |>

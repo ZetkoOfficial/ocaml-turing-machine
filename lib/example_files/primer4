@@ -1,0 +1,54 @@
+# turingov stroj za seštevanje dveh binarnih števil ločenih s presedkom
+# števili se morata začeti z najmaj pomebnim bitom
+
+# uporabimo dva tira
+@ read 2
+$ [_,0,1]
+
+read [0,_] -> read [_ - desno,0 - desno]
+read [0,0] -> read [_ - ni,0 - ni]
+read [0,1] -> read [_ - ni,1 - ni]
+
+read [1,_] -> read [_ - desno,1 - desno]
+read [1,0] -> read [_ - ni,0 - ni]
+read [1,1] -> read [_ - ni,1 - ni]
+
+read [_,_] -> return [_ - ni,_ - levo]
+read [_,0] -> read  [_ - ni,0 - ni]
+read [_,1] -> read  [_ - ni,1 - ni]
+
+return [_,0] -> return [_ - ni,0 - levo]
+return [0,0] -> return [0 - ni,0 - ni]
+return [1,0] -> return [1 - ni,0 - ni]
+
+return [_,1] -> return [_ - ni,1 - levo]
+return [0,1] -> return [0 - ni,1 - ni]
+return [1,1] -> return [1 - ni,1 - ni]
+
+return [_,_] -> sum_normal [_ - desno,_ - desno]
+return [0,_] -> return [0 - ni,_ - ni]
+return [1,_] -> return [1 - ni,_ - ni]
+
+sum_normal [0,0] -> sum_normal [0 - desno,_ - desno]
+sum_normal [0,1] -> sum_normal [1 - desno,_ - desno]
+sum_normal [1,0] -> sum_normal [1 - desno,_ - desno]
+sum_normal [0,_] -> sum_normal [0 - desno,_ - desno]
+sum_normal [1,_] -> sum_normal [1 - desno,_ - desno]
+sum_normal [_,0] -> sum_normal [0 - desno,_ - desno]
+sum_normal [_,1] -> sum_normal [1 - desno,_ - desno]
+sum_normal [1,1] -> sum_carry  [0 - desno,_ - desno]
+sum_normal [_,_] -> !konec [_ - ni,_ - ni]
+
+sum_carry [0,0] -> sum_normal [1 - desno,_ - desno]
+sum_carry [0,1] -> sum_carry  [0 - desno,_ - desno]
+sum_carry [1,0] -> sum_carry  [0 - desno,_ - desno]
+sum_carry [0,_] -> sum_normal [1 - desno,_ - desno]
+sum_carry [1,_] -> sum_carry  [0 - desno,_ - desno]
+sum_carry [_,0] -> sum_normal [1 - desno,_ - desno]
+sum_carry [_,1] -> sum_carry  [0 - desno,_ - desno]
+sum_carry [1,1] -> sum_carry  [1 - desno,_ - desno]
+sum_carry [_,_] -> !konec [1 - ni,_ - ni]
+
+# input:  0 0 0 1 1 1 1 0 1 _ 1 1 0 1 0 0 1 0 1 1 _
+# output: _ _ _ _ _ _ _ _ _ _ 1 1 0 0 0 0 1 1 0 0 1
+# 376 + 843 = 1219 (v decimalnem)

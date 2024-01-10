@@ -93,6 +93,16 @@ let pozeni turing =
   turing
 ;;  
 
+(** Natisne prvi trak turingovega stroja.  *)
+let print_prvi_trak turing = 
+  let trak = Trak.bindings @@ (List.hd turing.data.tiri).trak in
+  List.iter (fun (_,v) -> 
+    match v with
+    | Prazno    -> print_string "_ "
+    | Podatek p -> print_string p; print_string " ";
+  ) trak; print_newline ()
+;;
+
 let uporaba_str = "Uporaba:\notm <filename> [--(f)orce] [--(d)eterministic_only] [--(c)ompile_only]\n" in
 let force =               ref false in
 let deterministic_only =  ref false in
@@ -123,6 +133,7 @@ match extra with
   try
     let turing = prevedi ~force ~deterministic_only filename in
     if compile_only then exit 0;
-    let _ = pozeni turing in ()
+    let turing = pozeni turing in 
+    print_newline (); print_prvi_trak turing
   with _ -> exit 1 end
 | _ -> let _ = Arg.usage specifikacija uporaba_str in exit 1
