@@ -31,7 +31,7 @@ let print_error ?(line_num=None) del extra =
     match line_num with
     | None ->   print_endline (ANSI.format ANSI.red "    > napaka:")
     | Some i -> print_endline
-      (ANSI.format ANSI.red "    > napaka: (vrstica "^string_of_int (i+1)^")")
+      (ANSI.format ANSI.red ("    > napaka: (vrstica "^string_of_int (i+1)^")"))
   end;
 
   List.iter (fun line -> print_endline (ANSI.format ANSI.red ("    > "^line)) ) extra

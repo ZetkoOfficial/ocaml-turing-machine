@@ -102,25 +102,25 @@ let%test "parsiraj" =
   ([
     Parser.Zacetek ("A", 1);
     Parser.Podatki (["_";"1"]);
-    Parser.Tranzicija ( ("A", ["_"]),( "B", ["1",Parser.Desno]) );
-    Parser.Tranzicija ( ("A", ["1"]),("!H", ["1",Parser.Desno]) );
+    Parser.Tranzicija ( 18,(("A", ["_"]),( "B", ["1",Parser.Desno])) );
+    Parser.Tranzicija ( 19,(("A", ["1"]),("!H", ["1",Parser.Desno])) );
 
-    Parser.Tranzicija ( ("B", ["_"]),("C", ["_",Parser.Desno]) );
-    Parser.Tranzicija ( ("B", ["1"]),("B", ["1",Parser.Desno]) );
+    Parser.Tranzicija ( 21,(("B", ["_"]),("C", ["_",Parser.Desno])) );
+    Parser.Tranzicija ( 22,(("B", ["1"]),("B", ["1",Parser.Desno])) );
 
-    Parser.Tranzicija ( ("C", ["_"]),("C", ["1",Parser.Levo]) );
-    Parser.Tranzicija ( ("C", ["1"]),("A", ["1",Parser.Levo]) );
+    Parser.Tranzicija ( 24,(("C", ["_"]),("C", ["1",Parser.Levo])) );
+    Parser.Tranzicija ( 25,(("C", ["1"]),("A", ["1",Parser.Levo])) );
   ])
 ;;
 
 let%test "parsiraj" = 
   (Parser.parsiraj @@ preberi_testfile "primer2") = 
   ([
-    Parser.Tranzicija ( ("test", ["a";"b";"c"]),( "s1", ["a",Parser.Levo;"b",Parser.Desno;"c",Parser.Ni]) );
-    Parser.Tranzicija ( ("test", ["a";"b";"c"]),( "s2", ["a",Parser.Levo;"b",Parser.Desno;"c",Parser.Ni]) );
+    Parser.Tranzicija ( 3,(("test", ["a";"b";"c"]),( "s1", ["a",Parser.Levo;"b",Parser.Desno;"c",Parser.Ni])) );
+    Parser.Tranzicija ( 4,(("test", ["a";"b";"c"]),( "s2", ["a",Parser.Levo;"b",Parser.Desno;"c",Parser.Ni])) );
 
-    Parser.Tranzicija ( ("test2", ["e";"f";"g"]),( "s1", ["a",Parser.Levo;"b",Parser.Desno;"c",Parser.Ni]) );
-    Parser.Tranzicija ( ("test2", ["e";"f";"g"]),( "s2", ["a",Parser.Levo;"b",Parser.Desno;"c",Parser.Ni]) );
+    Parser.Tranzicija ( 7,(("test2", ["e";"f";"g"]),( "s1", ["a",Parser.Levo;"b",Parser.Desno;"c",Parser.Ni])) );
+    Parser.Tranzicija ( 8,(("test2", ["e";"f";"g"]),( "s2", ["a",Parser.Levo;"b",Parser.Desno;"c",Parser.Ni])) );
   ])
 ;;
 
@@ -129,14 +129,14 @@ let%test "parsiraj" =
 let parsirano = [
   Parser.Zacetek ("A", 1);
   Parser.Podatki (["_";"1"]);
-  Parser.Tranzicija ( ("A", ["_"]),( "B", ["1",Parser.Desno]) );
-  Parser.Tranzicija ( ("A", ["1"]),("!H", ["1",Parser.Desno]) );
+  Parser.Tranzicija ( 0,(("A", ["_"]),( "B", ["1",Parser.Desno])) );
+  Parser.Tranzicija ( 0,(("A", ["1"]),("!H", ["1",Parser.Desno])) );
 
-  Parser.Tranzicija ( ("B", ["_"]),("C", ["_",Parser.Desno]) );
-  Parser.Tranzicija ( ("B", ["1"]),("B", ["1",Parser.Desno]) );
+  Parser.Tranzicija ( 0,(("B", ["_"]),("C", ["_",Parser.Desno])) );
+  Parser.Tranzicija ( 0,(("B", ["1"]),("B", ["1",Parser.Desno])) );
 
-  Parser.Tranzicija ( ("C", ["_"]),("C", ["1",Parser.Levo]) );
-  Parser.Tranzicija ( ("C", ["1"]),("A", ["1",Parser.Levo]) );
+  Parser.Tranzicija ( 0,(("C", ["_"]),("C", ["1",Parser.Levo])) );
+  Parser.Tranzicija ( 0,(("C", ["1"]),("A", ["1",Parser.Levo])) );
 ]
 
 let%test_unit "pozeni in prevedi parsiran busy_beaver" = [%test_eq: (Base.int*Base.string) Base.list ] 
@@ -151,13 +151,13 @@ let%test_unit "pozeni in prevedi parsiran busy_beaver" = [%test_eq: (Base.int*Ba
 let parsirano = [
   Parser.Zacetek ("A", 1);
   Parser.Podatki (["_"]);
-  Parser.Tranzicija ( ("A", ["_"]),( "B", ["_",Parser.Ni]) );
-  Parser.Tranzicija ( ("A", ["_"]),( "C", ["_",Parser.Ni]) );
+  Parser.Tranzicija ( 0,(("A", ["_"]),( "B", ["_",Parser.Ni])) );
+  Parser.Tranzicija ( 0,(("A", ["_"]),( "C", ["_",Parser.Ni])) );
 
-  Parser.Tranzicija ( ("C", ["_"]),( "A", ["_",Parser.Ni]) );
+  Parser.Tranzicija ( 0,(("C", ["_"]),( "A", ["_",Parser.Ni])) );
 
-  Parser.Tranzicija ( ("B", ["_"]),( "C",  ["_",Parser.Ni]) );
-  Parser.Tranzicija ( ("B", ["_"]),( "!D", ["_",Parser.Ni]) );
+  Parser.Tranzicija ( 0,(("B", ["_"]),( "C",  ["_",Parser.Ni])) );
+  Parser.Tranzicija ( 0,(("B", ["_"]),( "!D", ["_",Parser.Ni])) );
 ]
 
 let%test "pozeni in prevedi parsiran nedeterministični stroj" =

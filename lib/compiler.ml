@@ -11,6 +11,7 @@ exception MissingTranstion of int * int
 exception UnknownSymbol of string
 
 exception ExpectedDeterministic
+exception InvalidListSize of int
 
 (** Izračuna a^b. *)
 let rec pow a b = 
@@ -90,10 +91,23 @@ let prevedi_tokene ?(force=false) ?(deterministic_only=false) tokeni =
 
   let tranzicije = tokeni |> List.filter (is_tranzicija) |> List.map (fun t ->
     match t with
-    | Parser.Tranzicija (t_in, t_out) -> (t_in, t_out)
+    | Parser.Tranzicija (i,t) -> (i,t)
     | _ -> failwith "nepričakovana napaka"
   ) in
 
+  (* preverimo če so seznami pravilno dolgi *)
+  let dolzine_ok = List.fold_left (fun acc (i,((_, list), (_, list'))) -> 
+    if acc = None then 
+      if (List.length list = st_tirov && List.length list' = st_tirov) then None
+      else Some i
+    else acc
+  ) None tranzicije in
+
+  match dolzine_ok with
+  | Some i -> raise (InvalidListSize i)
+  | _ -> ();
+
+  let tranzicije = List.map (fun (_,t) -> t) tranzicije in
   let vsa_stanja, vsi_podatki = pridobi_stanja tranzicije, pridobi_podatke tranzicije in
 
   (* preverimo če so vsi_podatki podmnožica veljavnih *)

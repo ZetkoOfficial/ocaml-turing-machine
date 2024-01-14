@@ -19,7 +19,7 @@ type tranzicija_out = string * ((string * smer) list)
 type token = 
   | Zacetek of string * int
   | Podatki of string list
-  | Tranzicija of tranzicija_in * tranzicija_out
+  | Tranzicija of int * (tranzicija_in * tranzicija_out)
 
 let trim vrstice = List.mapi(fun i vrstica -> i,String.trim vrstica) vrstice
 
@@ -103,14 +103,14 @@ let parsiraj vrstice =
       | [stanje; podatki; "->"; stanje'; navodila], _ ->
         let t_in = stanje, v_seznam podatki in 
         let t_out = stanje', navodila |> v_seznam |> v_navodilo i in
-        aux t None ( Tranzicija (t_in,t_out) :: acc )
+        aux t None ( Tranzicija (i,(t_in,t_out)) :: acc )
 
       | [stanje; podatki; "->"], _ ->
         aux t ( Some (stanje, v_seznam podatki) ) acc
 
       | ["|"; stanje'; navodila], Some t_in ->
         let t_out = stanje', navodila |> v_seznam |> v_navodilo i in
-        aux t (Some t_in) ( Tranzicija (t_in,t_out) :: acc )
+        aux t (Some t_in) ( Tranzicija (i, (t_in,t_out)) :: acc )
 
       | _ -> raise (ParseException i)
     end in

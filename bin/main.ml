@@ -68,6 +68,9 @@ let prevedi ~force ~deterministic_only filename =
       | Compiler.ExpectedDeterministic -> begin 
         Logging.print_error "prevajanje" ["pričakovan je bil determinističen turingov stroj, a to ni."];
         raise CompilationError end 
+      | Compiler.InvalidListSize i -> begin 
+        Logging.print_error ~line_num:(Some i) "prevajanje" ["v tranziciji je napačno število elementov v seznamu."];
+        raise CompilationError end 
       | _ -> begin
         Logging.print_error "prevajanje" ["neznana napaka."];
         raise CompilationError end in
