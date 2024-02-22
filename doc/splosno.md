@@ -2,7 +2,7 @@
 Turingovo napravo bomo v tem projektu definirali podobno kot je definirana na [Wikipediji](https://en.wikipedia.org/wiki/Turing_machine), le z morda malce drugačno terminologijo, ki bolje representira kako jih bomo implementirali v kodi.
 ## Definicija
 Najprej definirajmo množici *podatkov* $P$ in *stanj* $S$, kjer je
-- $\_ \in P$ *prazni podatek*
+- $\\_ \in P$ *prazni podatek*
 - vsak element $S$ oblike $!s$ imenujemo *končno stanje*.
 
 Definirajmo še neskončen *trak* katerega elementi so elementi množice podatkov in 
